@@ -1,808 +1,193 @@
 import 'package:flutter/material.dart';
 import 'package:leads_management/core/theme.dart';
 import 'package:leads_management/widgets/sidebar.dart';
+import 'package:leads_management/widgets/custom_bottom_bar.dart';
+import 'package:go_router/go_router.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final size = MediaQuery.of(context).size;
+    final isMobile = size.width < 900;
+
     return Scaffold(
+      backgroundColor: const Color(0xFF0A0B09),
       body: Row(
         children: [
-          const SideBar(activeRoute: '/settings'),
+          if (!isMobile) const SideBar(activeRoute: '/settings'),
           Expanded(
             child: Column(
               children: [
-                _buildTopNav(),
+                _buildHeader(context, isMobile),
                 Expanded(
-                  child: Row(
-                    children: [
-                      _buildSettingsSubSidebar(),
-                      Expanded(child: _buildMainContent()),
-                    ],
+                  child: SingleChildScrollView(
+                    padding: EdgeInsets.all(isMobile ? 20 : 48),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text('Settings', style: TextStyle(color: Colors.white, fontSize: 32, fontWeight: FontWeight.bold)),
+                        const SizedBox(height: 8),
+                        const Text('Manage your account, preferences, and data integrations.', style: TextStyle(color: Colors.white38, fontSize: 13)),
+                        const SizedBox(height: 40),
+                        if (isMobile) ...[
+                          _buildProfileCard(isMobile),
+                          const SizedBox(height: 24),
+                          _buildSettingsSection('APPEARANCE', [
+                            _buildToggle('Dark Mode', true),
+                            _buildToggle('Desktop Notifications', true),
+                          ]),
+                          const SizedBox(height: 24),
+                          _buildSettingsSection('INTEGRATIONS', [
+                            _buildIntegrationItem('Slack', 'Connected', true, Colors.green),
+                            _buildIntegrationItem('Gmail', 'Connected', true, Colors.orange),
+                          ]),
+                          const SizedBox(height: 100),
+                        ] else ...[
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Expanded(flex: 2, child: _buildProfileCard(isMobile)),
+                              const SizedBox(width: 32),
+                              Expanded(
+                                flex: 1,
+                                child: Column(
+                                  children: [
+                                    _buildSettingsSection('APPEARANCE', [
+                                      _buildToggle('Dark Mode', true),
+                                      _buildToggle('Push Alerts', true),
+                                    ]),
+                                    const SizedBox(height: 24),
+                                    _buildSettingsSection('SECURITY', [
+                                      _buildToggle('Two-Factor Auth', false),
+                                      _buildToggle('Face ID', true),
+                                    ]),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ],
+                    ),
                   ),
                 ),
-                _buildFooter(),
               ],
             ),
           ),
         ],
       ),
+      bottomNavigationBar: isMobile ? const CustomBottomBar(selectedIndex: 4) : null,
     );
   }
 
-  Widget _buildTopNav() {
+  Widget _buildHeader(BuildContext context, bool isMobile) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
-      decoration: BoxDecoration(
-        color: const Color(0xFF130E1B).withValues(alpha: 0.8),
-        border: Border(
-          bottom: BorderSide(color: Colors.white.withValues(alpha: 0.05)),
-        ),
-      ),
+      padding: EdgeInsets.all(isMobile ? 20 : 32),
+      decoration: BoxDecoration(color: const Color(0xFF131313), border: Border(bottom: BorderSide(color: Colors.white.withValues(alpha: 0.05)))),
       child: Row(
         children: [
-          const Text(
-            'CRM Pro',
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-              letterSpacing: 0.5,
+          if (isMobile)
+            IconButton(
+              icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white, size: 18),
+              onPressed: () => context.go('/dashboard'),
             ),
-          ),
-          const SizedBox(width: 48),
-          Container(
-            width: 320,
-            height: 40,
-            decoration: BoxDecoration(
-              color: Colors.black26,
-              borderRadius: BorderRadius.circular(10),
-              border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
-            ),
-            child: const TextField(
-              decoration: InputDecoration(
-                hintText: 'Search leads, deals...',
-                prefixIcon: Icon(Icons.search, color: Colors.white38, size: 18),
-                border: InputBorder.none,
-                contentPadding: EdgeInsets.symmetric(vertical: 10),
-              ),
-            ),
-          ),
           const Spacer(),
-          _buildNavTextItem('Dashboard'),
-          _buildNavTextItem('Leads'),
-          _buildNavTextItem('Deals'),
-          _buildNavTextItem('Reports'),
-          const SizedBox(width: 24),
-          Stack(
-            children: [
-              const Icon(Icons.notifications_none, color: Colors.white70),
-              Positioned(
-                right: 0,
-                top: 0,
-                child: Container(
-                  width: 8,
-                  height: 8,
-                  decoration: const BoxDecoration(
-                    color: Colors.red,
-                    shape: BoxShape.circle,
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(width: 24),
-          const CircleAvatar(
-            radius: 18,
-            backgroundImage: NetworkImage('https://i.pravatar.cc/150?u=alex'),
+          ElevatedButton(
+            onPressed: () {},
+            style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFFCCFF00), foregroundColor: Colors.black, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10))),
+            child: const Text('Save Changes', style: TextStyle(fontWeight: FontWeight.bold)),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildNavTextItem(String label) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      child: Text(
-        label,
-        style: const TextStyle(
-          color: Colors.white70,
-          fontSize: 13,
-          fontWeight: FontWeight.w500,
-        ),
-      ),
-    );
-  }
-
-  Widget _buildSettingsSubSidebar() {
-    return Container(
-      width: 260,
-      padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        border: Border(
-          right: BorderSide(color: Colors.white.withValues(alpha: 0.05)),
-        ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            'Settings',
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          const SizedBox(height: 8),
-          const Row(
-            children: [
-              Text(
-                'Home',
-                style: TextStyle(color: Colors.white38, fontSize: 12),
-              ),
-              Padding(
-                padding: EdgeInsets.symmetric(horizontal: 6),
-                child: Icon(
-                  Icons.chevron_right,
-                  color: Colors.white38,
-                  size: 12,
-                ),
-              ),
-              Text(
-                'Account',
-                style: TextStyle(color: Colors.white38, fontSize: 12),
-              ),
-            ],
-          ),
-          const SizedBox(height: 32),
-          _buildSubNavItem(Icons.person_outline, 'Profile', true),
-          _buildSubNavItem(Icons.settings_outlined, 'Preferences', false),
-          _buildSubNavItem(Icons.extension_outlined, 'Integrations', false),
-          _buildSubNavItem(Icons.security_outlined, 'Security', false),
-          _buildSubNavItem(Icons.payment_outlined, 'Billing', false),
-          const Spacer(),
-          _buildUpgradeCard(),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildSubNavItem(IconData icon, String label, bool isActive) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 8),
-      decoration: BoxDecoration(
-        color: isActive
-            ? AppColors.primary.withValues(alpha: 0.1)
-            : Colors.transparent,
-        borderRadius: BorderRadius.circular(12),
-        border: isActive
-            ? Border.all(color: AppColors.primary.withValues(alpha: 0.2))
-            : null,
-      ),
-      child: ListTile(
-        leading: Icon(
-          icon,
-          color: isActive ? AppColors.primary : Colors.white24,
-          size: 20,
-        ),
-        title: Text(
-          label,
-          style: TextStyle(
-            color: isActive ? Colors.white : Colors.white38,
-            fontSize: 14,
-            fontWeight: isActive ? FontWeight.bold : FontWeight.w500,
-          ),
-        ),
-        onTap: () {},
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      ),
-    );
-  }
-
-  Widget _buildUpgradeCard() {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.03),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Icon(
-            Icons.diamond_outlined,
-            color: Colors.purpleAccent,
-            size: 24,
-          ),
-          const SizedBox(height: 12),
-          const Text(
-            'Upgrade Plan',
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 14,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          const SizedBox(height: 6),
-          const Text(
-            'Unlock advanced features and more integrations.',
-            style: TextStyle(color: Colors.white38, fontSize: 12),
-          ),
-          const SizedBox(height: 16),
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton(
-              onPressed: () {},
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primary,
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(vertical: 12),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10),
-                ),
-              ),
-              child: const Text(
-                'View Plans',
-                style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildMainContent() {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(48),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _buildProfileHeaderCard(),
-          const SizedBox(height: 32),
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(child: _buildAppearanceCard()),
-              const SizedBox(width: 32),
-              Expanded(child: _buildIntegrationsCard()),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildProfileHeaderCard() {
+  Widget _buildProfileCard(bool isMobile) {
     return Container(
       padding: const EdgeInsets.all(32),
-      decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.02),
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
-      ),
+      decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.03), borderRadius: BorderRadius.circular(25), border: Border.all(color: Colors.white.withValues(alpha: 0.05))),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Container(
-                padding: const EdgeInsets.all(4),
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  border: Border.all(
-                    color: AppColors.primary.withValues(alpha: 0.3),
-                    width: 2,
-                  ),
-                ),
-                child: const CircleAvatar(
-                  radius: 50,
-                  backgroundImage: NetworkImage(
-                    'https://i.pravatar.cc/300?u=alex_morgan',
-                  ),
-                ),
-              ),
-              const SizedBox(width: 24),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'Alex Morgan',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 28,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  const Text(
-                    'Senior Sales Executive • New York, USA',
-                    style: TextStyle(color: Colors.white38, fontSize: 14),
-                  ),
-                  const SizedBox(height: 20),
-                  Row(
-                    children: [
-                      ElevatedButton(
-                        onPressed: () {},
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.primary,
-                          foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 20,
-                            vertical: 16,
-                          ),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                        ),
-                        child: const Text(
-                          'Upload New Photo',
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 13,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      OutlinedButton(
-                        onPressed: () {},
-                        style: OutlinedButton.styleFrom(
-                          foregroundColor: Colors.white,
-                          side: const BorderSide(color: Colors.white12),
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 20,
-                            vertical: 16,
-                          ),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                        ),
-                        child: const Text(
-                          'Remove',
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 13,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ],
-          ),
-          const SizedBox(height: 48),
-          Row(
-            children: [
-              Expanded(
-                child: _buildTextField(
-                  'FULL NAME',
-                  'Alex Morgan',
-                  Icons.person_outline,
-                ),
-              ),
+              const CircleAvatar(radius: 40, backgroundImage: NetworkImage('https://i.pravatar.cc/150?u=alex')),
               const SizedBox(width: 24),
               Expanded(
-                child: _buildTextField(
-                  'JOB TITLE',
-                  'Senior Sales Executive',
-                  Icons.work_outline,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text('Alex Morgan', style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold)),
+                    const Text('Senior Account Manager', style: TextStyle(color: Colors.white38, fontSize: 13)),
+                  ],
                 ),
               ),
             ],
           ),
+          const SizedBox(height: 32),
+          const Divider(color: Colors.white10),
           const SizedBox(height: 24),
-          _buildTextField(
-            'EMAIL ADDRESS',
-            'alex.morgan@crmpro.com',
-            Icons.email_outlined,
-            suffix: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-              decoration: BoxDecoration(
-                color: Colors.green.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: Colors.green.withValues(alpha: 0.2)),
-              ),
-              child: const Text(
-                'Verified',
-                style: TextStyle(
-                  color: Colors.green,
-                  fontSize: 11,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
-          ),
+          _buildInput('Full Name', 'Alex Morgan'),
+          const SizedBox(height: 20),
+          _buildInput('Email', 'alex@neon-crm.com'),
         ],
       ),
     );
   }
 
-  Widget _buildTextField(
-    String label,
-    String value,
-    IconData icon, {
-    Widget? suffix,
-  }) {
+  Widget _buildInput(String label, String value) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          label,
-          style: const TextStyle(
-            color: Colors.white24,
-            fontSize: 11,
-            fontWeight: FontWeight.bold,
-            letterSpacing: 1.2,
-          ),
-        ),
+        Text(label, style: const TextStyle(color: Colors.white24, fontSize: 10, fontWeight: FontWeight.bold)),
         const SizedBox(height: 12),
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-          decoration: BoxDecoration(
-            color: Colors.black26,
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
-          ),
-          child: TextField(
-            controller: TextEditingController(text: value),
-            style: const TextStyle(color: Colors.white),
-            decoration: InputDecoration(
-              icon: Icon(icon, color: Colors.white24, size: 20),
-              border: InputBorder.none,
-              suffixIcon: suffix != null
-                  ? Padding(padding: const EdgeInsets.all(12), child: suffix)
-                  : null,
-            ),
-          ),
-        ),
+        Container(width: double.infinity, padding: const EdgeInsets.all(16), decoration: BoxDecoration(color: Colors.black26, borderRadius: BorderRadius.circular(12), border: Border.all(color: Colors.white.withValues(alpha: 0.05))), child: Text(value, style: const TextStyle(color: Colors.white70, fontSize: 14))),
       ],
     );
   }
 
-  Widget _buildAppearanceCard() {
+  Widget _buildSettingsSection(String title, List<Widget> children) {
     return Container(
-      padding: const EdgeInsets.all(32),
-      decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.02),
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
-      ),
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.02), borderRadius: BorderRadius.circular(20), border: Border.all(color: Colors.white.withValues(alpha: 0.05))),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'Appearance',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    'Customize your interface theme.',
-                    style: TextStyle(
-                      color: Colors.white.withValues(alpha: 0.4),
-                      fontSize: 13,
-                    ),
-                  ),
-                ],
-              ),
-              const Icon(Icons.dark_mode_outlined, color: Colors.white24),
-            ],
-          ),
-          const SizedBox(height: 32),
-          Container(
-            padding: const EdgeInsets.all(4),
-            decoration: BoxDecoration(
-              color: Colors.black26,
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Row(
-              children: [
-                _buildThemeOption(Icons.light_mode_outlined, 'Light', false),
-                _buildThemeOption(Icons.dark_mode, 'Dark', true),
-                _buildThemeOption(Icons.computer, 'System', false),
-              ],
-            ),
-          ),
-          const SizedBox(height: 32),
-          _buildToggleItem(
-            'Desktop Notifications',
-            'Receive push alerts for new leads.',
-            true,
-          ),
-          const SizedBox(height: 24),
-          _buildToggleItem(
-            'Email Digests',
-            'Weekly summary of your performance.',
-            false,
-          ),
+          Text(title, style: const TextStyle(color: Colors.white24, fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 1.5)),
+          const SizedBox(height: 20),
+          ...children,
         ],
       ),
     );
   }
 
-  Widget _buildThemeOption(IconData icon, String label, bool isActive) {
-    return Expanded(
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 12),
-        decoration: BoxDecoration(
-          color: isActive ? const Color(0xFF2D263A) : Colors.transparent,
-          borderRadius: BorderRadius.circular(10),
-          border: isActive
-              ? Border.all(color: Colors.white.withValues(alpha: 0.1))
-              : null,
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              icon,
-              color: isActive ? Colors.white : Colors.white38,
-              size: 18,
-            ),
-            const SizedBox(width: 8),
-            Text(
-              label,
-              style: TextStyle(
-                color: isActive ? Colors.white : Colors.white38,
-                fontSize: 13,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildToggleItem(String title, String desc, bool value) {
-    return Row(
-      children: [
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                title,
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 14,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                desc,
-                style: TextStyle(
-                  color: Colors.white.withValues(alpha: 0.3),
-                  fontSize: 12,
-                ),
-              ),
-            ],
-          ),
-        ),
-        Switch(value: value, onChanged: (v) {}, activeColor: AppColors.primary),
-      ],
-    );
-  }
-
-  Widget _buildIntegrationsCard() {
-    return Container(
-      padding: const EdgeInsets.all(32),
-      decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.02),
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+  Widget _buildToggle(String label, bool val) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'Integrations',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    'Manage your connected tools.',
-                    style: TextStyle(
-                      color: Colors.white.withValues(alpha: 0.4),
-                      fontSize: 13,
-                    ),
-                  ),
-                ],
-              ),
-              Text(
-                'View All',
-                style: TextStyle(
-                  color: AppColors.primary,
-                  fontSize: 13,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 32),
-          _buildIntegrationItem(
-            'Slack',
-            'Connected to #sales-alerts',
-            true,
-            Colors.green,
-          ),
-          const SizedBox(height: 16),
-          _buildIntegrationItem(
-            'Gmail',
-            'Syncing contacts...',
-            true,
-            Colors.orange,
-          ),
-          const SizedBox(height: 16),
-          _buildIntegrationItem('Zoom', 'Not connected', false, Colors.grey),
+          Text(label, style: const TextStyle(color: Colors.white70, fontSize: 14)),
+          Switch(value: val, onChanged: (v) {}, activeColor: const Color(0xFFCCFF00)),
         ],
       ),
     );
   }
 
-  Widget _buildIntegrationItem(
-    String name,
-    String status,
-    bool isConnected,
-    Color statusColor,
-  ) {
+  Widget _buildIntegrationItem(String name, String status, bool isConnected, Color statusColor) {
     return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.black12,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.03)),
-      ),
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(color: Colors.black26, borderRadius: BorderRadius.circular(15)),
       child: Row(
         children: [
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: Colors.white10,
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Icon(
-              _getIntegrationIcon(name),
-              color: Colors.white70,
-              size: 24,
-            ),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Text(
-                      name,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 14,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Container(
-                      width: 6,
-                      height: 6,
-                      decoration: BoxDecoration(
-                        color: statusColor,
-                        shape: BoxShape.circle,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  status,
-                  style: const TextStyle(color: Colors.white38, fontSize: 12),
-                ),
-              ],
-            ),
-          ),
-          isConnected
-              ? Switch(
-                  value: true,
-                  onChanged: (v) {},
-                  activeColor: Colors.green,
-                )
-              : OutlinedButton(
-                  onPressed: () {},
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: Colors.white,
-                    side: const BorderSide(color: Colors.white12),
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 8,
-                    ),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                  ),
-                  child: const Text(
-                    'Connect',
-                    style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
-                  ),
-                ),
-        ],
-      ),
-    );
-  }
-
-  IconData _getIntegrationIcon(String name) {
-    switch (name) {
-      case 'Slack':
-        return Icons.chat_bubble_outline;
-      case 'Gmail':
-        return Icons.email_outlined;
-      case 'Zoom':
-        return Icons.videocam_outlined;
-      default:
-        return Icons.extension_outlined;
-    }
-  }
-
-  Widget _buildFooter() {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 20),
-      decoration: BoxDecoration(
-        border: Border(
-          top: BorderSide(color: Colors.white.withValues(alpha: 0.05)),
-        ),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.end,
-        children: [
-          TextButton(
-            onPressed: () {},
-            child: const Text(
-              'Discard Changes',
-              style: TextStyle(
-                color: Colors.white38,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ),
-          const SizedBox(width: 24),
-          ElevatedButton.icon(
-            onPressed: () {},
-            icon: const Icon(Icons.save_outlined, size: 18),
-            label: const Text('Save Changes'),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.primary,
-              foregroundColor: Colors.white,
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-            ),
-          ),
+          Container(width: 8, height: 8, decoration: BoxDecoration(color: statusColor, shape: BoxShape.circle)),
+          const SizedBox(width: 12),
+          Text(name, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13)),
+          const Spacer(),
+          Text(status, style: const TextStyle(color: Colors.white24, fontSize: 11)),
         ],
       ),
     );

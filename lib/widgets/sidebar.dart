@@ -116,6 +116,18 @@ class SideBar extends StatelessWidget {
                   isActive: activeRoute == '/analytics',
                   onTap: () => context.go('/analytics'),
                 ),
+                _NavTile(
+                  icon: Icons.today_outlined,
+                  label: "Today's Leads",
+                  isActive: activeRoute == '/today-leads',
+                  onTap: () => context.go('/today-leads'),
+                ),
+                _NavTile(
+                  icon: Icons.list_alt_outlined,
+                  label: "All Leads",
+                  isActive: activeRoute == '/all-leads',
+                  onTap: () => context.go('/all-leads'),
+                ),
                 const SizedBox(height: 32),
                 const Padding(
                   padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),

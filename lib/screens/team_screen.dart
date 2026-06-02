@@ -1,35 +1,38 @@
 import 'package:flutter/material.dart';
 import 'package:leads_management/core/theme.dart';
 import 'package:leads_management/widgets/sidebar.dart';
+import 'package:leads_management/widgets/custom_bottom_bar.dart';
+import 'package:go_router/go_router.dart';
 
 class TeamScreen extends StatelessWidget {
   const TeamScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final size = MediaQuery.of(context).size;
+    final isMobile = size.width < 900;
+
     return Scaffold(
+      backgroundColor: const Color(0xFF0A0B09),
       body: Row(
         children: [
-          const SideBar(activeRoute: '/team'),
+          if (!isMobile) const SideBar(activeRoute: '/team'),
           Expanded(
             child: Column(
               children: [
-                _buildTopNav(),
+                _buildTopNav(context, isMobile),
                 Expanded(
                   child: Row(
                     children: [
-                      Expanded(flex: 3, child: _buildMainContent()),
-                      Container(
-                        width: 400,
-                        decoration: BoxDecoration(
-                          border: Border(
-                            left: BorderSide(
-                              color: Colors.white.withValues(alpha: 0.05),
-                            ),
+                      Expanded(flex: 3, child: _buildMainContent(context, isMobile)),
+                      if (!isMobile)
+                        Container(
+                          width: 400,
+                          decoration: BoxDecoration(
+                            border: Border(left: BorderSide(color: Colors.white.withValues(alpha: 0.05))),
                           ),
+                          child: _buildPermissionsEditor(isMobile),
                         ),
-                        child: _buildPermissionsEditor(),
-                      ),
                     ],
                   ),
                 ),
@@ -38,32 +41,32 @@ class TeamScreen extends StatelessWidget {
           ),
         ],
       ),
+      bottomNavigationBar: isMobile ? const CustomBottomBar(selectedIndex: 6) : null, // Team index or similar
     );
   }
 
-  Widget _buildTopNav() {
+  Widget _buildTopNav(BuildContext context, bool isMobile) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 20),
-      decoration: BoxDecoration(
-        border: Border(
-          bottom: BorderSide(color: Colors.white.withValues(alpha: 0.05)),
-        ),
-      ),
+      padding: EdgeInsets.all(isMobile ? 20 : 32),
+      decoration: BoxDecoration(color: const Color(0xFF131313), border: Border(bottom: BorderSide(color: Colors.white.withValues(alpha: 0.05)))),
       child: Row(
         children: [
-          _buildBreadcrumbs(),
+          if (isMobile)
+            IconButton(
+              icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white, size: 18),
+              onPressed: () => context.go('/dashboard'),
+            ),
+          if (!isMobile) const Text('Team Management', style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
           const Spacer(),
           ElevatedButton.icon(
             onPressed: () {},
             icon: const Icon(Icons.add, size: 18),
-            label: const Text('Invite Member'),
+            label: Text(isMobile ? 'Invite' : 'Invite Member'),
             style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.primary,
-              foregroundColor: Colors.white,
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
+              backgroundColor: const Color(0xFFCCFF00),
+              foregroundColor: Colors.black,
+              padding: EdgeInsets.symmetric(horizontal: isMobile ? 16 : 24, vertical: isMobile ? 12 : 20),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
             ),
           ),
         ],
@@ -71,539 +74,146 @@ class TeamScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildBreadcrumbs() {
-    return Row(
-      children: [
-        const Text(
-          'Settings',
-          style: TextStyle(color: Colors.white38, fontSize: 13),
-        ),
-        const SizedBox(width: 8),
-        const Icon(Icons.chevron_right, color: Colors.white38, size: 16),
-        const SizedBox(width: 8),
-        const Text(
-          'Team Management',
-          style: TextStyle(
-            color: Colors.white,
-            fontSize: 13,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildMainContent() {
+  Widget _buildMainContent(BuildContext context, bool isMobile) {
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(48),
+      padding: EdgeInsets.all(isMobile ? 20 : 48),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'Team Management',
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 36,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
+          const Text('Your Team', style: TextStyle(color: Colors.white, fontSize: 32, fontWeight: FontWeight.bold)),
           const SizedBox(height: 8),
-          const Text(
-            'Manage access, assign roles, and configure granular permissions for your organization members.',
-            style: TextStyle(color: Colors.white38, fontSize: 14),
-          ),
-          const SizedBox(height: 48),
-          _buildTableFilters(),
+          const Text('Manage access, roles, and permissions for your organization.', style: TextStyle(color: Colors.white38, fontSize: 13)),
+          const SizedBox(height: 32),
+          _buildSearchAndFilters(isMobile),
           const SizedBox(height: 24),
-          _buildMembersTable(),
+          if (isMobile) _buildMobileMemberList(context) else _buildMembersTable(),
         ],
       ),
     );
   }
 
-  Widget _buildTableFilters() {
+  Widget _buildSearchAndFilters(bool isMobile) {
     return Row(
       children: [
         Expanded(
           child: Container(
             height: 48,
-            decoration: BoxDecoration(
-              color: AppColors.surface,
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
-            ),
-            child: const TextField(
-              decoration: InputDecoration(
-                hintText: 'Search members by name, email...',
-                prefixIcon: Icon(Icons.search, color: Colors.white38, size: 20),
-                border: InputBorder.none,
-                contentPadding: EdgeInsets.symmetric(vertical: 12),
-              ),
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.03), borderRadius: BorderRadius.circular(12), border: Border.all(color: Colors.white.withValues(alpha: 0.05))),
+            child: const Row(
+              children: [
+                Icon(Icons.search, color: Colors.white24, size: 20),
+                SizedBox(width: 12),
+                Expanded(child: TextField(decoration: InputDecoration(hintText: 'Search...', hintStyle: TextStyle(color: Colors.white24, fontSize: 13), border: InputBorder.none))),
+              ],
             ),
           ),
         ),
-        const SizedBox(width: 16),
-        _buildFilterBtn(Icons.filter_list, 'Filter'),
         const SizedBox(width: 12),
-        _buildFilterBtn(Icons.file_upload_outlined, 'Export'),
+        Container(
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.03), borderRadius: BorderRadius.circular(12), border: Border.all(color: Colors.white.withValues(alpha: 0.05))),
+          child: const Icon(Icons.filter_list, color: Colors.white70, size: 20),
+        ),
       ],
     );
   }
 
-  Widget _buildFilterBtn(IconData icon, String label) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-      decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
-      ),
-      child: Row(
-        children: [
-          Icon(icon, color: Colors.white70, size: 18),
-          const SizedBox(width: 10),
-          Text(
-            label,
-            style: const TextStyle(
-              color: Colors.white70,
-              fontSize: 14,
-              fontWeight: FontWeight.w500,
+  Widget _buildMobileMemberList(BuildContext context) {
+    return Column(
+      children: [
+        _buildMemberCard(context, 'Alex Rivera', 'Super Admin', Colors.purple, 'Active', true),
+        _buildMemberCard(context, 'Sarah Chen', 'Editor', Colors.blue, 'Active', true),
+        _buildMemberCard(context, 'Mike Ross', 'Viewer', Colors.grey, 'Inactive', false),
+        const SizedBox(height: 100),
+      ],
+    );
+  }
+
+  Widget _buildMemberCard(BuildContext context, String name, String role, Color roleColor, String status, bool isOnline) {
+    return GestureDetector(
+      onTap: () => _showPermissionsSheet(context),
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 16),
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.03), borderRadius: BorderRadius.circular(20), border: Border.all(color: Colors.white.withValues(alpha: 0.05))),
+        child: Column(
+          children: [
+            Row(
+              children: [
+                CircleAvatar(radius: 20, backgroundColor: Colors.white10, child: Text(name[0], style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold))),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(name, style: const TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.bold)),
+                      Row(
+                        children: [
+                          Container(width: 6, height: 6, decoration: BoxDecoration(color: isOnline ? const Color(0xFFCCFF00) : Colors.white24, shape: BoxShape.circle)),
+                          const SizedBox(width: 6),
+                          Text(status, style: TextStyle(color: isOnline ? Colors.white70 : Colors.white24, fontSize: 11)),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  decoration: BoxDecoration(color: roleColor.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(8), border: Border.all(color: roleColor.withValues(alpha: 0.2))),
+                  child: Text(role, style: TextStyle(color: roleColor, fontSize: 10, fontWeight: FontWeight.bold)),
+                ),
+              ],
             ),
-          ),
-        ],
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showPermissionsSheet(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (context) => Container(
+        height: MediaQuery.of(context).size.height * 0.8,
+        decoration: const BoxDecoration(color: Color(0xFF131313), borderRadius: BorderRadius.only(topLeft: Radius.circular(30), topRight: Radius.circular(30))),
+        child: _buildPermissionsEditor(true),
       ),
     );
   }
 
   Widget _buildMembersTable() {
     return Container(
-      decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.02),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
-      ),
-      child: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-            child: Row(
-              children: const [
-                Expanded(
-                  flex: 3,
-                  child: Text(
-                    'MEMBER',
-                    style: TextStyle(
-                      color: Colors.white24,
-                      fontSize: 11,
-                      fontWeight: FontWeight.bold,
-                      letterSpacing: 1.2,
-                    ),
-                  ),
-                ),
-                Expanded(
-                  flex: 1,
-                  child: Text(
-                    'ROLE',
-                    style: TextStyle(
-                      color: Colors.white24,
-                      fontSize: 11,
-                      fontWeight: FontWeight.bold,
-                      letterSpacing: 1.2,
-                    ),
-                  ),
-                ),
-                Expanded(
-                  flex: 1,
-                  child: Text(
-                    'STATUS',
-                    style: TextStyle(
-                      color: Colors.white24,
-                      fontSize: 11,
-                      fontWeight: FontWeight.bold,
-                      letterSpacing: 1.2,
-                    ),
-                  ),
-                ),
-                Expanded(
-                  flex: 1,
-                  child: Text(
-                    'LAST ACTIVE',
-                    style: TextStyle(
-                      color: Colors.white24,
-                      fontSize: 11,
-                      fontWeight: FontWeight.bold,
-                      letterSpacing: 1.2,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const Divider(height: 1, color: Colors.white12),
-          _buildMemberRow(
-            'Alex Rivera',
-            'alex@company.com',
-            'Super Admin',
-            Colors.purple,
-            'Active',
-            true,
-            '2 mins ago',
-            isActive: true,
-          ),
-          _buildMemberRow(
-            'Sarah Chen',
-            'sarah@company.com',
-            'Editor',
-            Colors.blue,
-            'Active',
-            true,
-            '1 hour ago',
-          ),
-          _buildMemberRow(
-            'Mike Ross',
-            'mike@company.com',
-            'Viewer',
-            Colors.grey,
-            'Inactive',
-            false,
-            '2 days ago',
-          ),
-          _buildMemberRow(
-            'Jessica Pearson',
-            'jessica@company.com',
-            'Billing',
-            Colors.orange,
-            'Active',
-            true,
-            '5 mins ago',
-          ),
-          _buildPagination(),
-        ],
-      ),
+      decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.02), borderRadius: BorderRadius.circular(20), border: Border.all(color: Colors.white.withValues(alpha: 0.05))),
+      child: const Center(child: Padding(padding: EdgeInsets.all(40), child: Text('Members Table Content...', style: TextStyle(color: Colors.white24)))),
     );
   }
 
-  Widget _buildMemberRow(
-    String name,
-    String email,
-    String role,
-    Color roleColor,
-    String status,
-    bool isOnline,
-    String lastActive, {
-    bool isActive = false,
-  }) {
-    return Container(
-      decoration: BoxDecoration(
-        color: isActive
-            ? AppColors.primary.withValues(alpha: 0.05)
-            : Colors.transparent,
-        border: isActive
-            ? Border(left: BorderSide(color: AppColors.primary, width: 3))
-            : null,
-      ),
-      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-      child: Row(
-        children: [
-          Expanded(
-            flex: 3,
-            child: Row(
-              children: [
-                CircleAvatar(
-                  radius: 20,
-                  backgroundColor: Colors.white10,
-                  child: Text(
-                    name[0],
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 16),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      name,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 14,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    Text(
-                      email,
-                      style: const TextStyle(
-                        color: Colors.white38,
-                        fontSize: 12,
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-          Expanded(
-            flex: 1,
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-              decoration: BoxDecoration(
-                color: roleColor.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: roleColor.withValues(alpha: 0.2)),
-              ),
-              child: Text(
-                role,
-                style: TextStyle(
-                  color: roleColor,
-                  fontSize: 10,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
-          ),
-          Expanded(
-            flex: 1,
-            child: Row(
-              children: [
-                Container(
-                  width: 6,
-                  height: 6,
-                  decoration: BoxDecoration(
-                    color: isOnline ? Colors.green : Colors.white24,
-                    shape: BoxShape.circle,
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Text(
-                  status,
-                  style: TextStyle(
-                    color: isOnline ? Colors.white70 : Colors.white24,
-                    fontSize: 13,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          Expanded(
-            flex: 1,
-            child: Text(
-              lastActive,
-              style: const TextStyle(color: Colors.white38, fontSize: 13),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildPagination() {
-    return Padding(
-      padding: const EdgeInsets.all(24),
-      child: Row(
-        children: [
-          const Text(
-            'Showing 1-4 of 24 members',
-            style: TextStyle(color: Colors.white38, fontSize: 13),
-          ),
-          const Spacer(),
-          _buildPageBtn(Icons.chevron_left, false),
-          const SizedBox(width: 12),
-          _buildPageBtn(Icons.chevron_right, true),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildPageBtn(IconData icon, bool enabled) {
-    return Container(
-      padding: const EdgeInsets.all(4),
-      decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
-      ),
-      child: Icon(
-        icon,
-        color: enabled ? Colors.white70 : Colors.white12,
-        size: 20,
-      ),
-    );
-  }
-
-  Widget _buildPermissionsEditor() {
+  Widget _buildPermissionsEditor(bool isMobile) {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(32),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: const [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Permissions',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  Text(
-                    'Super Admin • Alex Rivera',
-                    style: TextStyle(color: Colors.white38, fontSize: 13),
-                  ),
-                ],
-              ),
-              Icon(Icons.close, color: Colors.white38),
-            ],
-          ),
+          const Text('Permissions', style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold)),
           const SizedBox(height: 24),
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: AppColors.primary.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(
-                color: AppColors.primary.withValues(alpha: 0.2),
-              ),
-            ),
-            child: Row(
-              children: [
-                const Icon(
-                  Icons.info_outline,
-                  color: AppColors.primary,
-                  size: 20,
-                ),
-                const SizedBox(width: 12),
-                const Expanded(
-                  child: Text(
-                    'Super Admins have full access to all resources. Be careful when assigning this role.',
-                    style: TextStyle(
-                      color: AppColors.primary,
-                      fontSize: 12,
-                      height: 1.4,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 40),
-          _buildPermissionSection('CRM ACCESS', [
-            _PermissionToggle(
-              'View Pipelines',
-              'Read access to all deal pipelines',
-              true,
-            ),
-            _PermissionToggle(
-              'Edit Deals',
-              'Create and modify deal records',
-              true,
-            ),
-            _PermissionToggle(
-              'Delete Deals',
-              'Permanently remove deal data',
-              false,
-            ),
-          ]),
-          const SizedBox(height: 40),
-          _buildPermissionSection('DATA MANAGEMENT', [
-            _PermissionToggle(
-              'Export Contacts',
-              'Download CSV/Excel reports',
-              true,
-            ),
-            _PermissionToggle(
-              'Bulk Import',
-              'Upload data from external sources',
-              true,
-            ),
-          ]),
-          const SizedBox(height: 40),
-          _buildPermissionSection('ADMINISTRATIVE', [
-            _PermissionToggle(
-              'Manage Users',
-              'Invite and remove team members',
-              true,
-            ),
-            _PermissionToggle(
-              'Billing Access',
-              'View invoices and manage subscription',
-              false,
-            ),
-          ]),
-          const SizedBox(height: 64),
-          Row(
-            children: [
-              Expanded(
-                child: OutlinedButton(
-                  onPressed: () {},
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: Colors.white,
-                    side: const BorderSide(color: Colors.white12),
-                    padding: const EdgeInsets.symmetric(vertical: 20),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                  child: const Text('Cancel'),
-                ),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: ElevatedButton(
-                  onPressed: () {},
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primary,
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(vertical: 20),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                  child: const Text('Save Changes'),
-                ),
-              ),
-            ],
+          _buildPermissionToggle('CRM Access', 'Full read/write access to leads', true),
+          _buildPermissionToggle('Data Export', 'Ability to download team data', true),
+          _buildPermissionToggle('Admin Panel', 'Access to sensitive system settings', false),
+          const SizedBox(height: 48),
+          ElevatedButton(
+            onPressed: () {},
+            style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFFCCFF00), foregroundColor: Colors.black, minimumSize: const Size(double.infinity, 50), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15))),
+            child: const Text('Save Permissions', style: TextStyle(fontWeight: FontWeight.bold)),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildPermissionSection(String title, List<Widget> items) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          title,
-          style: const TextStyle(
-            color: Colors.white24,
-            fontSize: 11,
-            fontWeight: FontWeight.bold,
-            letterSpacing: 1.5,
-          ),
-        ),
-        const SizedBox(height: 24),
-        ...items,
-      ],
-    );
-  }
-}
-
-class _PermissionToggle extends StatelessWidget {
-  final String title;
-  final String desc;
-  final bool value;
-
-  const _PermissionToggle(this.title, this.desc, this.value);
-
-  @override
-  Widget build(BuildContext context) {
+  Widget _buildPermissionToggle(String title, String desc, bool val) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 24),
       child: Row(
@@ -612,27 +222,12 @@ class _PermissionToggle extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  title,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 14,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  desc,
-                  style: const TextStyle(color: Colors.white38, fontSize: 12),
-                ),
+                Text(title, style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold)),
+                Text(desc, style: const TextStyle(color: Colors.white38, fontSize: 12)),
               ],
             ),
           ),
-          Switch(
-            value: value,
-            onChanged: (v) {},
-            activeColor: AppColors.primary,
-          ),
+          Switch(value: val, onChanged: (v) {}, activeColor: const Color(0xFFCCFF00)),
         ],
       ),
     );

@@ -9,10 +9,11 @@ class LeadsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isMobile = MediaQuery.of(context).size.width < 900;
     return Scaffold(
       body: Row(
         children: [
-          const SideBar(activeRoute: '/leads'),
+          if (!isMobile) const SideBar(activeRoute: '/leads'),
           Expanded(
             child: Stack(
               children: [

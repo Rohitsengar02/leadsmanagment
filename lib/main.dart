@@ -16,56 +16,90 @@ import 'package:leads_management/screens/form_builder_screen.dart';
 import 'package:leads_management/screens/proposal_list_screen.dart';
 import 'package:leads_management/screens/proposal_builder_screen.dart';
 
+import 'package:leads_management/screens/onboarding_screen.dart';
+import 'package:leads_management/screens/all_leads_screen.dart';
+import 'package:leads_management/screens/todays_leads_screen.dart';
+import 'package:leads_management/screens/ai_assistant_screen.dart';
+import 'package:leads_management/widgets/mobile_simulator_wrapper.dart';
+
 void main() {
   runApp(const MyApp());
 }
 
 final GoRouter _router = GoRouter(
-  initialLocation: '/',
+  initialLocation: '/onboarding',
   routes: [
-    GoRoute(path: '/', builder: (context, state) => const LoginScreen()),
+    GoRoute(
+      path: '/onboarding',
+      builder: (context, state) => const MobileSimulatorWrapper(child: OnboardingScreen()),
+    ),
+    GoRoute(
+      path: '/',
+      builder: (context, state) => const MobileSimulatorWrapper(child: LoginScreen()),
+    ),
     GoRoute(
       path: '/dashboard',
       builder: (context, state) => const DashboardScreen(),
     ),
-    GoRoute(path: '/leads', builder: (context, state) => const LeadsScreen()),
+    GoRoute(
+      path: '/leads',
+      builder: (context, state) => const MobileSimulatorWrapper(child: LeadsScreen()),
+    ),
     GoRoute(
       path: '/leads/details',
-      builder: (context, state) => const LeadDetailScreen(),
+      builder: (context, state) => const MobileSimulatorWrapper(child: LeadDetailScreen()),
     ),
     GoRoute(
       path: '/pipeline',
-      builder: (context, state) => const PipelineScreen(),
+      builder: (context, state) => const MobileSimulatorWrapper(child: PipelineScreen()),
     ),
-    GoRoute(path: '/tasks', builder: (context, state) => const TasksScreen()),
+    GoRoute(
+      path: '/tasks',
+      builder: (context, state) => const MobileSimulatorWrapper(child: TasksScreen()),
+    ),
     GoRoute(
       path: '/analytics',
-      builder: (context, state) => const AnalyticsScreen(),
+      builder: (context, state) => const MobileSimulatorWrapper(child: AnalyticsScreen()),
     ),
-    GoRoute(path: '/team', builder: (context, state) => const TeamScreen()),
+    GoRoute(
+      path: '/team',
+      builder: (context, state) => const MobileSimulatorWrapper(child: TeamScreen()),
+    ),
     GoRoute(
       path: '/settings',
-      builder: (context, state) => const SettingsScreen(),
+      builder: (context, state) => const MobileSimulatorWrapper(child: SettingsScreen()),
     ),
     GoRoute(
       path: '/notifications',
-      builder: (context, state) => const NotificationsScreen(),
+      builder: (context, state) => const MobileSimulatorWrapper(child: NotificationsScreen()),
     ),
     GoRoute(
       path: '/forms',
-      builder: (context, state) => const FormsListScreen(),
+      builder: (context, state) => const MobileSimulatorWrapper(child: FormsListScreen()),
     ),
     GoRoute(
       path: '/forms/builder',
-      builder: (context, state) => const FormBuilderScreen(),
+      builder: (context, state) => const MobileSimulatorWrapper(child: FormBuilderScreen()),
     ),
     GoRoute(
       path: '/proposals',
-      builder: (context, state) => const ProposalListScreen(),
+      builder: (context, state) => const MobileSimulatorWrapper(child: ProposalListScreen()),
     ),
     GoRoute(
       path: '/proposals/builder',
-      builder: (context, state) => const ProposalBuilderScreen(),
+      builder: (context, state) => const MobileSimulatorWrapper(child: ProposalBuilderScreen()),
+    ),
+    GoRoute(
+      path: '/all-leads',
+      builder: (context, state) => const MobileSimulatorWrapper(child: AllLeadsScreen()),
+    ),
+    GoRoute(
+      path: '/today-leads',
+      builder: (context, state) => const MobileSimulatorWrapper(child: TodaysLeadsScreen()),
+    ),
+    GoRoute(
+      path: '/ai-assistant',
+      builder: (context, state) => const MobileSimulatorWrapper(child: AIAssistantScreen()),
     ),
   ],
 );
